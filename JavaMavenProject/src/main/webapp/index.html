@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java Maven Web Application - S3 Integration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border: 1px solid #ddd;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #666;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #333;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        .highlight {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-left: 3px solid #666;
+            margin: 20px 0;
+        }
+        .button {
+            background-color: #666;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .button:hover {
+            background-color: #555;
+        }
+        .button.test {
+            background-color: #888;
+        }
+        .button.test:hover {
+            background-color: #777;
+        }
+        #image-container {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            min-height: 100px;
+        }
+        ul {
+            line-height: 1.6;
+        }
+        code {
+            background-color: #f0f0f0;
+            padding: 2px 6px;
+            font-family: 'Courier New', monospace;
+            color: #333;
+        }
+        .image-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border: 1px solid #ddd;
+        }
+        .image-table th {
+            background-color: #f0f0f0;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+            border-bottom: 1px solid #ddd;
+        }
+        .image-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+        .image-table tr:hover {
+            background-color: #f9f9f9;
+        }
+        .thumbnail {
+            width: 100px;
+            height: 80px;
+            object-fit: cover;
+            border: 1px solid #ddd;
+            cursor: pointer;
+        }
+        .thumbnail:hover {
+            border-color: #666;
+        }
+        .download-btn {
+            background-color: #666;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            margin: 2px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .download-btn:hover {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Java Maven Web Application with S3 Integration</h1>
+        
+        <div class="highlight">
+            <p>This Maven project demonstrates AWS S3 integration using <strong>Instance Profile Credentials</strong> for secure access.</p>
+            <p><strong>Student:</strong> MiyaChinenn</p>
+        </div>
+        
+        <h2>S3 Image Gallery</h2>
+        <p>Current images stored in S3 bucket: <code>public-miyachinenn</code></p>
+        
+        <table class="image-table">
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Image Preview</th>
+                    <th>Filename</th>
+                    <th>Download Links</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>1</strong></td>
+                    <td>
+                        <img src="./object/cyrene.png" alt="cyrene.png" class="thumbnail" onclick="viewFullImage('cyrene.png')">
+                    </td>
+                    <td>
+                        <strong>cyrene.png</strong><br>
+                        <small style="color: #666;">2.4 MB • PNG Image</small>
+                    </td>
+                    <td>
+                        <a href="./object/cyrene.png" target="_blank" class="download-btn">View Full</a>
+                        <a href="./object/cyrene.png" download="cyrene.png" class="download-btn">Download</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>2</strong></td>
+                    <td>
+                        <img src="./object/image.jpg" alt="image.jpg" class="thumbnail" onclick="viewFullImage('image.jpg')">
+                    </td>
+                    <td>
+                        <strong>image.jpg</strong><br>
+                        <small style="color: #666;">127.2 KB • JPEG Image</small>
+                    </td>
+                    <td>
+                        <a href="./object/image.jpg" target="_blank" class="download-btn">View Full</a>
+                        <a href="./object/image.jpg" download="image.jpg" class="download-btn">Download</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>3</strong></td>
+                    <td>
+                        <img src="./object/yuki.png" alt="yuki.png" class="thumbnail" onclick="viewFullImage('yuki.png')">
+                    </td>
+                    <td>
+                        <strong>yuki.png</strong><br>
+                        <small style="color: #666;">61.2 KB • PNG Image</small>
+                    </td>
+                    <td>
+                        <a href="./object/yuki.png" target="_blank" class="download-btn">View Full</a>
+                        <a href="./object/yuki.png" download="yuki.png" class="download-btn">Download</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h2>Interactive JavaScript Demo</h2>
+        <p>Use JavaScript to dynamically load S3 objects:</p>
+        
+        <button class="button test" onclick="testServlet()">Test Servlet Connection</button>
+        <button class="button" onclick="loadImage('cyrene.png')">Load cyrene.png</button>
+        <button class="button" onclick="loadImage('image.jpg')">Load image.jpg</button>
+        <button class="button" onclick="loadImage('yuki.png')">Load yuki.png</button>
+        <button class="button" onclick="loadAllImages()">Load All Images</button>
+        
+        <div id="image-container">
+            <p style="color: #666; font-style: italic;">Click a button above to test the S3 integration...</p>
+        </div>
+        
+        <h2>JavaScript Functions</h2>
+        <p><strong>Available Functions:</strong></p>
+        <ul>
+            <li><code>loadImage('filename.jpg')</code> - Load single image from S3</li>
+            <li><code>loadMultipleImages(['file1.jpg', 'file2.png'])</code> - Load multiple images</li>
+            <li><code>testServlet()</code> - Test servlet connectivity and response</li>
+            <li><code>fetchObjectWithRole('key')</code> - Direct API call to servlet</li>
+        </ul>
+    </div>
+
+    <script src="js/s3-image-loader.js"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+vgu\cloud26\LambdaOrchestrator.class
+vgu\cloud26\LambdaGetListOfObjects.class
+vgu\cloud26\LambdaResizer.class
+vgu\cloud26\LambdaResizerManual.class
+vgu\cloud26\LambdaEntryPoint.class
+vgu\cloud26\LambdaDeleteObject.class
+vgu\cloud26\LambdaGetObject.class
+vgu\cloud26\LambdaTimer.class
+vgu\cloud26\LambdaGetPhotosDB.class
+vgu\cloud26\LambdaDeletePhotoDB.class
+vgu\cloud26\LambdaInsertPhotoDB.class
+vgu\cloud26\LambdaUploadObject.class

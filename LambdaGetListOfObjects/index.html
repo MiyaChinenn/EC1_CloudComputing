@@ -1,0 +1,410 @@
+<html>
+    <head>
+        <title>Bucket List</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=XZE6ivRBlLCWiUgGnJsSlLf_Gceh0Sq8aakvCPUD-p97_32A8ifFOBX1nfv9wYEaHGeGNhjg5_hKDXE30x8T9oiwL5cLUl6uE_ZwImq9GVIVoUCjEZWYWflC1UCkZG_9E94PPfKg6FXFRDGS5D9z-g" charset="UTF-8"></script><link rel="stylesheet" crossorigin="anonymous" href="https://gc.kis.v2.scr.kaspersky-labs.com/E3E8934C-235A-4B0E-825A-35A08381A191/abn/main.css?attr=aHR0cHM6Ly9tb29kbGUudmd1LmVkdS52bi9wbHVnaW5maWxlLnBocC85NzkzMS9tb2RfcmVzb3VyY2UvY29udGVudC8xL2luZGV4Lmh0bWw_ZW1iZWQ9MQ"/><style>
+            table, th, td {
+                border: 1px solid;
+            }
+        </style>
+
+    </head>
+    <body>
+
+        <div><h1>Bucket List</h1></div>
+        <div>
+            <label for="file_input">file: </label>
+            <input type="file" id="file_input" >
+            <button id="upload_button" onclick="uploadObject()">Upload</button>
+        </div>
+        <div>
+            <table id="objectsTable">
+            </table>
+        </div>
+        <div>
+            <img src="" id="download_image">
+        </div>
+        <script>
+            //getObjectList();
+            fetchListOfObjects();
+
+
+            function renderListOfObjects(listOfObjects) {
+                let objectsTable = document.getElementById("objectsTable");
+                while (objectsTable.firstChild) {
+                    objectsTable.removeChild(objectsTable.lastChild);
+                }
+                let objectsArray = JSON.parse(listOfObjects);
+
+                for (let i = 0; i < objectsArray.length; i = i + 1) {
+                    let row = document.createElement("tr");
+                    let objectKey = objectsArray[i].key;
+                    
+                    /* Thumbnail cell (left side) */
+                    let thumbnailCell = document.createElement("td");
+                    
+                    // Check if it's an image file
+                    if (objectKey.toLowerCase().includes('.jpg') || 
+                        objectKey.toLowerCase().includes('.jpeg') || 
+                        objectKey.toLowerCase().includes('.png') || 
+                        objectKey.toLowerCase().includes('.gif')) {
+                        
+                        let thumbnailImg = document.createElement("img");
+                        thumbnailImg.style.width = "100px";
+                        thumbnailImg.style.height = "100px";
+                        thumbnailImg.style.objectFit = "cover";
+                        thumbnailImg.alt = "";
+                        
+                        // Try to load thumbnail from thumbnails bucket
+                        let thumbnailKey = "thumbnail-" + objectKey;
+                        fetchThumbnail(thumbnailKey, thumbnailImg, objectKey);
+                        
+                        thumbnailCell.appendChild(thumbnailImg);
+                    } else {
+                        thumbnailCell.innerHTML = "📄"; // File icon for non-images
+                    }
+                    
+                    /* File name cell */
+                    let keyCell = document.createElement("td");
+                    keyCell.innerHTML = objectsArray[i].key;
+                    
+                    /* Download button */
+                    let downloadCell = document.createElement("td");
+                    let downloadButton = document.createElement("button");
+                    downloadButton.addEventListener("click", function () {
+                        fetchObject(objectKey)
+                    });
+                    downloadButton.innerHTML = "Download";
+                    downloadCell.appendChild(downloadButton);
+                    
+                    /* Delete button */
+                    let deleteCell = document.createElement("td");
+                    let deleteButton = document.createElement("button");
+                    deleteButton.addEventListener("click", function () {
+                        deleteObject(objectKey);
+                    });
+                    deleteButton.innerHTML = "Delete";
+                    deleteCell.appendChild(deleteButton);
+                    
+                    row.appendChild(thumbnailCell);
+                    row.appendChild(keyCell);
+                    row.appendChild(downloadCell);
+                    row.appendChild(deleteCell);
+                    objectsTable.appendChild(row);
+                }
+
+            }
+
+            function fetchListOfObjects() {
+                let url = "https://yafsvtmzsmvg7dkccd3c74xhvi0uggid.lambda-url.ap-southeast-1.on.aws/";
+                fetch(url)
+                        .then((response) => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error, status = ${response.status}`);
+                            }
+                            return response.text();
+                        })
+                        .then((text) => {
+                            renderListOfObjects(text);
+                        })
+                        .catch((error) => {
+                            console.log(`Error: ${error.message}`);
+                        });
+
+            }
+
+
+            function fetchObject(key) {
+                const body = {
+                    "key": key
+                };
+                /*
+                 let url = "https://idt27gm4etf2vm4rdvtmqtzfwi0wuzte.lambda-url.ap-southeast-1.on.aws/?key=" + key;
+                 */
+                let url = "https://idt27gm4etf2vm4rdvtmqtzfwi0wuzte.lambda-url.ap-southeast-1.on.aws/";
+
+                fetch(url,
+                        {
+                            method: 'PUT',
+                            body: JSON.stringify(body)
+                        }
+                        )
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error, status = ${response.status}`);
+                            }
+                            return response.blob();
+                        })
+                        .then((myBlob) => {
+                            const objectURL = URL.createObjectURL(myBlob);
+                            const img_S3 = document.getElementById("download_image");
+                            img_S3.src = objectURL;
+                        })
+                        .catch((error) => {
+                            console.log(`Download error: ${error.message}`);
+                            alert(`Failed to download ${key}: ${error.message}`);
+                        });
+            }
+
+            /* GET BUCKET OBJECT LIST */
+            function getObjectList() {
+                let objectsTable = document.getElementById("objectsTable");
+                while (objectsTable.firstChild) {
+                    objectsTable.removeChild(objectsTable.lastChild);
+                }
+                const xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = () => {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status === 200) {
+                            let objectsArray = JSON.parse(xhr.responseText);
+
+                            for (let i = 0; i < objectsArray.length; i = i + 1) {
+                                let row = document.createElement("tr");
+                                let keyCell = document.createElement("td");
+                                keyCell.innerHTML = objectsArray[i].key;
+                                /* */
+                                let downloadCell = document.createElement("td");
+                                let downloadButton = document.createElement("button");
+                                downloadButton.addEventListener("click", function () {
+                                    //downloadObject(objectsArray[i].key);
+                                    fetchObject(objectsArray[i].key)
+                                });
+                                downloadButton.innerHTML = "Download";
+                                downloadCell.appendChild(downloadButton);
+                                /* */
+                                let objectKey = objectsArray[i].key;
+                                
+                                let deleteCell = document.createElement("td");
+                                let deleteButton = document.createElement("button");
+                                deleteButton.addEventListener("click", function () {
+                                    deleteObject(objectKey);
+                                });
+                                deleteButton.innerHTML = "Delete";
+                                deleteCell.appendChild(deleteButton);
+                                /* */
+                                row.appendChild(keyCell);
+                                row.appendChild(downloadCell);
+                                row.appendChild(deleteCell);
+                                objectsTable.appendChild(row);
+                            }
+
+                        } else {
+                            console.log(xhr.responseText);
+                        }
+                    }
+                };
+                xhr.open("GET", "https://yafsvtmzsmvg7dkccd3c74xhvi0uggid.lambda-url.ap-southeast-1.on.aws/");
+                xhr.send(null);
+
+            }
+
+
+            /* DOWNLOAD OBJECT */
+            function downloadObject(key) {
+                const xhr = new XMLHttpRequest();
+                xhr.onload = function () {
+                    let reader = new FileReader();
+                    reader.onloadend = function () {
+                        if (xhr.status === 200) {
+                            var outputImg = document.getElementById('download_image');
+                            outputImg.src = reader.result;
+                        } else {
+                            console.log(xhr.status + " : " + xhr.responseText);
+                        }
+                    };
+                    reader.readAsDataURL(xhr.response);
+                };
+                xhr.open("PUT", "https://idt27gm4etf2vm4rdvtmqtzfwi0wuzte.lambda-url.ap-southeast-1.on.aws/");
+                const body1 = JSON.stringify({
+                    "key": key
+                });
+                xhr.responseType = 'blob';
+                xhr.send(body1);
+            }
+
+            /* PUT OBJECT */
+            function putObject(json) {
+                let url = "https://nzabnhhfei3p5brx6yhpye5wim0sgqmf.lambda-url.ap-southeast-1.on.aws/";
+                fetch(url, {
+                        method: 'POST',
+                        body: JSON.stringify(json)
+                    })
+                    .then((resp) => resp.text())
+                    .then(function(response) {
+                        fetchListOfObjects();
+                        console.info('fetch()', response);
+                });
+            }
+
+            /* DELETE OBJECT */
+            function deleteObject(key) {
+                if (!confirm(`Delete "${key}"?`)) return;
+                
+                // Delete from S3
+                let s3Url = "https://deortrnm7mjor2rsrthelqduke0sjmzc.lambda-url.ap-southeast-1.on.aws/";
+                fetch(s3Url, {
+                        method: 'DELETE',
+                        body: JSON.stringify({"key": key})
+                    })
+                    .then((resp) => resp.text())
+                    .then(function(response) {
+                        console.info('S3 delete:', response);
+                        
+                        // Delete from database
+                        deletePhotoFromDatabase(key);
+                        
+                        // Refresh list
+                        fetchListOfObjects();
+                });
+            }
+
+            /* DELETE PHOTO FROM DATABASE */
+            function deletePhotoFromDatabase(fileName) {
+                const payload = {
+                    "S3Key": fileName
+                };
+                
+                let deleteDbUrl = "https://2hi36fqeytrqcibim23nigoizy0alwny.lambda-url.ap-southeast-1.on.aws/";
+                
+                fetch(deleteDbUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    })
+                    .then((resp) => {
+                        if (!resp.ok) {
+                            throw new Error(`HTTP error! status: ${resp.status}`);
+                        }
+                        return resp.text();
+                    })
+                    .then(function(response) {
+                        console.info('Database delete response:', response);
+                        const result = safeParseResponse(response);
+                        console.info('Database delete result:', result);
+                        if (result.success) {
+                            alert(`Database record deleted: ${fileName}`);
+                        } else {
+                            alert(`Warning: ${result.message || result.error || 'Unknown response'}`);
+                        }
+                    })
+                    .catch(function(error) {
+                        console.error('Error deleting from database:', error);
+                        alert(`Failed to delete from database: ${error.message}`);
+                    });
+            }
+
+
+            /* SAFE RESPONSE PARSER */
+            function safeParseResponse(response) {
+                try {
+                    // Try to parse as JSON first (might be plain JSON)
+                    return JSON.parse(response);
+                } catch (e) {
+                    // If that fails, try base64 decode
+                    try {
+                        const decoded = atob(response);
+                        return JSON.parse(decoded);
+                    } catch (e2) {
+                        // If both fail, return raw response
+                        console.warn('Could not parse response:', response);
+                        return { error: 'Could not parse response', raw: response };
+                    }
+                }
+            }
+
+            /* UPLOAD OBJECT */
+            function uploadObject() {
+                let file_input = document.getElementById("file_input");
+                let file = file_input.files[0];
+                let reader = new FileReader();
+                reader.onload = () => {
+                    const uint8Array = new Uint8Array(reader.result);
+                    const base64Content = uint8Array.toBase64();
+                    let description = file.name.replace(/\.[^/.]+$/, "");
+                    const payload = {
+                        "Description": description,
+                        "S3Key": file.name,
+                        "content": base64Content
+                    };
+                    let orchestratorUrl = "https://ldl27jnamvzzmygfgcrpdi5eee0vlhgd.lambda-url.ap-southeast-1.on.aws/";
+                    fetch(orchestratorUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(payload)
+                        })
+                        .then((resp) => resp.text())
+                        .then(function(response) {
+                            const result = safeParseResponse(response);
+                            console.info('Orchestration result:', result);
+                            if (result.orchestration === 'completed') {
+                                alert('Upload completed: ' + file.name);
+                                // Wait 4 seconds for orchestrator to finish (3s wait + processing time)
+                                setTimeout(() => {
+                                    fetchListOfObjects();
+                                }, 4000);
+                            } else {
+                                alert('Upload failed: ' + (result.error || 'Unknown error'));
+                                // Still refresh in case of error
+                                setTimeout(() => {
+                                    fetchListOfObjects();
+                                }, 4000);
+                            }
+                        })
+                        .catch(function(error) {
+                            console.error('Error uploading:', error);
+                            alert('Upload failed: ' + error.message);
+                        });
+                };
+                reader.onerror = (e) => {
+                    console.log('Error : ' + e.type);
+                };
+                reader.readAsArrayBuffer(file);  
+            }
+
+            /* FETCH THUMBNAIL */
+            function fetchThumbnail(thumbnailKey, imgElement, originalKey) {
+                const body = {
+                    "key": thumbnailKey
+                };
+                let url = "https://idt27gm4etf2vm4rdvtmqtzfwi0wuzte.lambda-url.ap-southeast-1.on.aws/";
+
+                fetch(url, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(body)
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            return response.blob();
+                        } else {
+                            throw new Error('Thumbnail not found');
+                        }
+                    })
+                    .then((myBlob) => {
+                        const objectURL = URL.createObjectURL(myBlob);
+                        imgElement.src = objectURL;
+                        imgElement.alt = "Thumbnail of " + originalKey;
+                    })
+                    .catch((error) => {
+                        // If thumbnail doesn't exist, show original image or placeholder
+                        imgElement.alt = "No thumbnail";
+                        imgElement.style.backgroundColor = "#f0f0f0";
+                        imgElement.style.border = "1px dashed #ccc";
+                        imgElement.style.display = "flex";
+                        imgElement.style.alignItems = "center";
+                        imgElement.style.justifyContent = "center";
+                        console.log(`Thumbnail not found for ${originalKey}`);
+                    });
+            }
+
+        </script>
+    </body>
+
+</html>

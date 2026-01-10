@@ -1,0 +1,23 @@
+# Sensitive credentials and keys
+data/*.csv
+data/*.pem
+data/*.properties
+data/*.md
+*.pem
+*_credentials.csv
+*_accessKeys.csv
+
+# Maven build artifacts
+target/
+*.jar
+*.war
+dependency-reduced-pom.xml
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
